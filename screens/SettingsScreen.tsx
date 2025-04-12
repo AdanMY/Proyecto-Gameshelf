@@ -37,7 +37,12 @@ const SettingsScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Ajustes</Text>
-      <Button title="Eliminar cuenta" color="red" onPress={handleDeleteAccount} />
+
+      <View style={styles.content}>
+        <Button title="Eliminar cuenta" color="red" onPress={handleDeleteAccount} />
+        <View style={{ height: 20 }} />
+        <Button title="Volver" onPress={() => navigation.goBack()} />
+      </View>
     </View>
   );
 };
@@ -47,7 +52,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     backgroundColor: '#000',
-    justifyContent: 'center',
   },
   title: {
     fontSize: 28,
@@ -55,7 +59,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: '#fff',
     textAlign: 'center',
+    marginTop: 20,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
   },
 });
 
 export default SettingsScreen;
+

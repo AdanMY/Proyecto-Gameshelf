@@ -1,5 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, Button } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+  Easing
+} from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '../App';
@@ -19,6 +29,10 @@ const GameListScreen = () => {
   const [games, setGames] = useState<Game[]>([]);
   const [filteredGames, setFilteredGames] = useState<Game[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<string>('Todos');
+  const [filterVisible, setFilterVisible] = useState(false);
+
+  const filterHeight = useRef(new Animated.Value(0)).current;
+  const filterOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     fetch('http://10.0.2.2/gameshelf_api/get_games.php')
@@ -30,23 +44,37 @@ const GameListScreen = () => {
           description: game.descripcion,
           image: game.portada,
           status: game.estado,
-          releaseDate: game.fecha_lanzamiento, // por si lo usas en el futuro
         }));
-  
+
         setGames(parsedGames);
         setFilteredGames(parsedGames);
       })
       .catch(error => console.error('Error al cargar los juegos:', error));
   }, []);
-  
+
+  const toggleFilterMenu = () => {
+    if (filterVisible) {
+      Animated.timing(filterOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => setFilterVisible(false));
+    } else {
+      setFilterVisible(true);
+      Animated.timing(filterOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: false,
+      }).start();
+    }
+  };
 
   const filterGames = (status: string) => {
     setSelectedFilter(status);
     if (status === 'Todos') {
       setFilteredGames(games);
     } else {
-      const filtered = games.filter(game => game.status === status);
-      setFilteredGames(filtered);
+      setFilteredGames(games.filter(game => game.status === status));
     }
   };
 
@@ -62,35 +90,55 @@ const GameListScreen = () => {
         })
       }
     >
-      <Image
-        source={{ uri: item.image }}
-        style={styles.image}
-        resizeMode="cover"
-      />
+      <Image source={{ uri: item.image }} style={styles.image} resizeMode="cover" />
       <Text style={styles.title}>{item.title}</Text>
     </TouchableOpacity>
   );
-  
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Tu biblioteca</Text>
-
-      <View style={styles.filterContainer}>
-        {['Todos', 'Completado', 'Pendiente', 'Adquirido', 'Anunciado', 'No lanzado'].map(status => (
-          <Button
-            key={status}
-            title={status.charAt(0).toUpperCase() + status.slice(1)}
-            onPress={() => filterGames(status)}
-            color={selectedFilter === status ? '#1E90FF' : '#444'}
-          />
-        ))}
+      <View style={[styles.topBar, { marginTop: 30 }]}>
+        <TouchableOpacity onPress={toggleFilterMenu}>
+          <Ionicons name="filter" size={28} color="#fff" />
+        </TouchableOpacity>
+        <Text style={styles.header}>Tu biblioteca</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+          <Ionicons name="settings" size={28} color="#fff" />
+        </TouchableOpacity>
       </View>
+
+      {filterVisible && (
+        <Animated.View style={[styles.filterContainer, {
+          opacity: filterOpacity,
+          position: 'absolute',
+          top: 60,
+          left: 10,
+          right: 10,
+          zIndex: 10,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          borderRadius: 12,
+          padding: 10,
+        }]}>
+          {['Todos', 'Completado', 'Pendiente', 'Adquirido', 'Anunciado', 'No lanzado'].map(status => (
+            <TouchableOpacity
+              key={status}
+              style={[
+                styles.filterButton,
+                selectedFilter === status && styles.activeFilter,
+              ]}
+              onPress={() => filterGames(status)}
+            >
+              <Text style={styles.filterText}>{status}</Text>
+            </TouchableOpacity>
+          ))}
+        </Animated.View>
+      )}
 
       <FlatList
         data={filteredGames}
         keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
+        contentContainerStyle={{ paddingBottom: 20, }}
       />
     </View>
   );
@@ -102,31 +150,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#121212',
-    padding: 10,
+    paddingHorizontal: 10,
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 15,
   },
   header: {
-    fontSize: 28,
+    fontSize: 24,
     color: '#fff',
     fontWeight: 'bold',
-    marginBottom: 10,
-    alignSelf: 'center',
   },
   card: {
     backgroundColor: '#222',
     borderRadius: 8,
     overflow: 'hidden',
     marginBottom: 16,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2},
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
   },
   image: {
     height: 180,
     width: '100%',
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
     marginBottom: 8,
   },
   title: {
@@ -136,8 +182,22 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   filterContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 10,
+    backgroundColor: 'transparent',
+    borderRadius: 10,
+    padding: 10,
+  },
+  filterButton: {
+    padding: 8,
+    marginVertical: 2,
+    borderRadius: 5,
+    backgroundColor: '#333',
+    width: '40%'
+  },
+  activeFilter: {
+    backgroundColor: '#1E90FF',
+  },
+  filterText: {
+    color: '#fff',
+    textAlign: 'center',
   },
 });

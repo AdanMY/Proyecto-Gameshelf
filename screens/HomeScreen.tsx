@@ -19,9 +19,10 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/logo.jpeg')} style={styles.logo} />
-      <Text style={styles.title}>GameShelf</Text>
-      <Text style={styles.subtitle}>Tu biblioteca de videojuegos</Text>
+      <Image source={require('../assets/homescreen.png')}
+      style={styles.backgroundImage} 
+      resizeMode="contain"
+      />
     </View>
   );
 };
@@ -29,14 +30,13 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
+    backgroundColor:'black',
   },
-  logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 20,
+  backgroundImage: {
+    flex:1,
+    width:'100%',
+    height:'100%',
+    ...StyleSheet.absoluteFillObject,
   },
   title: {
     fontSize: 32,
