@@ -15,7 +15,7 @@ const GameDetailsScreen = () => {
 
   const [currentStatus, setCurrentStatus] = useState(status);
 
-  const statuses = ["Pendiente", "Completado", "Adquirido", "Anunciado", "No lanzado"];
+  const statuses = ["Pendiente", "Completado", "Adquirido"];
 
   return (
     <View style={styles.container}>

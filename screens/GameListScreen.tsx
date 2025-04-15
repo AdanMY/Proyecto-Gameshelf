@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
-  Easing
+  Alert,
+  TextInput,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -30,8 +31,9 @@ const GameListScreen = () => {
   const [filteredGames, setFilteredGames] = useState<Game[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<string>('Todos');
   const [filterVisible, setFilterVisible] = useState(false);
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchText, setSearchText] = useState('');
 
-  const filterHeight = useRef(new Animated.Value(0)).current;
   const filterOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -78,6 +80,14 @@ const GameListScreen = () => {
     }
   };
 
+  const handleSearch = (text: string) => {
+    setSearchText(text);
+    const filtered = games.filter(game =>
+      game.title.toLowerCase().includes(text.toLowerCase())
+    );
+    setFilteredGames(filtered);
+  };
+
   const renderItem = ({ item }: { item: Game }) => (
     <TouchableOpacity
       style={styles.card}
@@ -101,11 +111,36 @@ const GameListScreen = () => {
         <TouchableOpacity onPress={toggleFilterMenu}>
           <Ionicons name="filter" size={28} color="#fff" />
         </TouchableOpacity>
+
         <Text style={styles.header}>Tu biblioteca</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-          <Ionicons name="settings" size={28} color="#fff" />
-        </TouchableOpacity>
+
+        <View style={styles.iconGroup}>
+          <TouchableOpacity onPress={() => Alert.alert(
+            "Función en desarrollo",
+            "Pronto podrás disfrutar de esta función. Estamos trabajando para habilitarla en futuras actualizaciones. ¡Gracias por tu comprensión!"
+          )}>
+            <Ionicons name="add-circle-outline" size={28} color="#fff" style={styles.icon} />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => setSearchVisible(!searchVisible)}>
+            <Ionicons name="search" size={28} color="#fff" style={styles.icon} />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+            <Ionicons name="settings" size={28} color="#fff" style={styles.icon} />
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {searchVisible && (
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar juego..."
+          placeholderTextColor="#aaa"
+          value={searchText}
+          onChangeText={handleSearch}
+        />
+      )}
 
       {filterVisible && (
         <Animated.View style={[styles.filterContainer, {
@@ -138,7 +173,7 @@ const GameListScreen = () => {
         data={filteredGames}
         keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 20, }}
+        contentContainerStyle={{ paddingBottom: 20 }}
       />
     </View>
   );
@@ -156,13 +191,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
     marginBottom: 15,
   },
   header: {
     fontSize: 24,
     color: '#fff',
     fontWeight: 'bold',
+    marginLeft: 70,
+  },
+  iconGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  icon: {
+    marginLeft: 12,
+  },
+  searchInput: {
+    backgroundColor: '#333',
+    color: '#fff',
+    padding: 8,
+    marginBottom: 10,
+    borderRadius: 8,
   },
   card: {
     backgroundColor: '#222',
@@ -191,7 +240,7 @@ const styles = StyleSheet.create({
     marginVertical: 2,
     borderRadius: 5,
     backgroundColor: '#333',
-    width: '40%'
+    width: '40%',
   },
   activeFilter: {
     backgroundColor: '#1E90FF',
@@ -201,3 +250,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
